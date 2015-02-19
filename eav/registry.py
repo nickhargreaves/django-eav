@@ -163,14 +163,14 @@ class Registry(object):
 
         gr_name = self.config_cls.generic_relation_attr.lower()
         try:
-            # Django>=1.6 support
+            # Django>=1.7 support
             generic_relation = \
                          generic.GenericRelation(Value,
                                                  object_id_field='entity_id',
                                                  content_type_field='entity_ct',
                                                  related_query_name=rel_name)
         except TypeError:
-            # Django<1.6 support 
+            # Django<1.7 support 
             generic_relation = \
                          generic.GenericRelation(Value,
                                                  object_id_field='entity_id',
