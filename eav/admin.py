@@ -24,10 +24,14 @@ from django.contrib.admin.options import (
 )
 from django.forms.models import BaseInlineFormSet
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext, ugettext_lazy as _
 
 from .models import Attribute, Value, EnumValue, EnumGroup
 
 class BaseEntityAdmin(ModelAdmin):
+
+    def get_eav_label(self):
+        return _("Other Attrs")
     
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
         """
@@ -39,17 +43,26 @@ class BaseEntityAdmin(ModelAdmin):
         substitute some data.
         """
         form = context['adminform'].form
-
+            
         # infer correct data from the form
-        fieldsets = self.fieldsets or [(None, {'fields': form.fields.keys()})]
+        if self.fieldsets:
+            _instance = obj or self.model()
+            config_cls = _instance._eav_config_cls
+            entity = getattr(_instance, config_cls.eav_attr)
+            eav_attrs = ["%s" %(attribute.slug,) for attribute in entity.get_all_attributes()]
+            if eav_attrs:
+                fieldsets = list(self.fieldsets) + [(self.get_eav_label(), {'fields': eav_attrs})]
+            else:
+                fieldsets = self.fieldsets
+        else:
+            fieldsets = [(None, {'fields': form.fields.keys()})]
         adminform = admin.helpers.AdminForm(form, fieldsets,
                                       self.prepopulated_fields)
         media = mark_safe(self.media + adminform.media)
 
         context.update(adminform=adminform, media=media)
 
-        super_meth = super(BaseEntityAdmin, self).render_change_form
-        return super_meth(request, context, add, change, form_url, obj)
+        return super(BaseEntityAdmin, self).render_change_form(request, context, add, change, form_url, obj)
 
 
 class BaseEntityInlineFormSet(BaseInlineFormSet):
