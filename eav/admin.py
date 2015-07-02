@@ -109,6 +109,7 @@ class BaseEntityInline(InlineModelAdmin):
 class AttributeAdmin(ModelAdmin):
     list_display = ('name', 'slug', 'datatype', 'description', 'site')
     list_filter = ['site']
+    list_editable = ['slug']
     prepopulated_fields = {'slug': ('name',)}
 
 admin.site.register(Attribute, AttributeAdmin)
